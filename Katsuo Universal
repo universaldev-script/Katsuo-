@@ -1,0 +1,292 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+player.CharacterAdded:Connect(function(char) 
+    character = char 
+end)
+
+
+
+
+
+
+
+
+
+local correctKey = "huswus"
+local teleportCFrame = nil
+
+local gui = Instance.new("ScreenGui")
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local function makeDraggable(frame)
+    local dragging = false
+    local dragStart, startPos
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+end
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 260, 0, 220)
+frame.Position = UDim2.new(0.5, -130, 0.5, -110)
+frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Instance.new("UICorner", frame)
+makeDraggable(frame)
+
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1,0,0,40)
+title.Text = "🔐 Enter Key"
+title.TextScaled = true
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.new(1,1,1)
+
+local keyBox = Instance.new("TextBox", frame)
+keyBox.Size = UDim2.new(1,-40,0,40)
+keyBox.Position = UDim2.new(0,20,0,50)
+keyBox.PlaceholderText = "Enter Key..."
+keyBox.TextScaled = true
+keyBox.BackgroundColor3 = Color3.fromRGB(50,50,50)
+keyBox.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", keyBox)
+
+local unlockBtn = Instance.new("TextButton", frame)
+unlockBtn.Size = UDim2.new(1,-40,0,40)
+unlockBtn.Position = UDim2.new(0,20,0,100)
+unlockBtn.Text = "Unlock"
+unlockBtn.TextScaled = true
+unlockBtn.BackgroundColor3 = Color3.fromRGB(80,140,255)
+unlockBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", unlockBtn)
+
+local discordBtn = Instance.new("TextButton", frame)
+discordBtn.Size = UDim2.new(1,-40,0,35)
+discordBtn.Position = UDim2.new(0,20,0,150)
+discordBtn.Text = "📎 Discord Invite"
+discordBtn.TextScaled = true
+discordBtn.BackgroundColor3 = Color3.fromRGB(100,100,255)
+discordBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", discordBtn)
+
+local discordInvite = "https://discord.gg/pe967GXa"
+local copyBox
+discordBtn.MouseButton1Click:Connect(function()
+    if copyBox then copyBox:Destroy() end
+    copyBox = Instance.new("TextBox", frame)
+    copyBox.Size = UDim2.new(1,-40,0,35)
+    copyBox.Position = UDim2.new(0,20,0,190)
+    copyBox.Text = discordInvite
+    copyBox.TextScaled = true
+    copyBox.ClearTextOnFocus = false
+    copyBox.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    copyBox.TextColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", copyBox)
+    copyBox:CaptureFocus()
+    copyBox.SelectionStart = 0
+    copyBox.CursorPosition = #discordInvite + 1
+end)
+
+local function createTeleportGui()
+    local tpFrame = Instance.new("Frame", gui)
+    tpFrame.Size = UDim2.new(0, 280, 0, 300)
+    tpFrame.Position = UDim2.new(0, 20, 0.5, -150)
+    tpFrame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    Instance.new("UICorner", tpFrame)
+    makeDraggable(tpFrame)
+    
+    -- Title
+    local tpTitle = Instance.new("TextLabel", tpFrame)
+    tpTitle.Size = UDim2.new(1, 0, 0, 35)
+    tpTitle.Text = "✨ Katsuo Universal"
+    tpTitle.TextScaled = true
+    tpTitle.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+    tpTitle.TextColor3 = Color3.new(1,1,1)
+    tpTitle.Font = Enum.Font.GothamBold
+    
+    local setBtn = Instance.new("TextButton", tpFrame)
+    setBtn.Size = UDim2.new(1, -20, 0, 40)
+    setBtn.Position = UDim2.new(0, 10, 0, 45)
+    setBtn.Text = "📍 Set Teleport Point"
+    setBtn.TextScaled = true
+    setBtn.BackgroundColor3 = Color3.fromRGB(70, 130, 255)
+    setBtn.TextColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", setBtn)
+    
+    local tpBtn = Instance.new("TextButton", tpFrame)
+    tpBtn.Size = UDim2.new(1, -20, 0, 40)
+    tpBtn.Position = UDim2.new(0, 10, 0, 95)
+    tpBtn.Text = "⚡ Teleport"
+    tpBtn.TextScaled = true
+    tpBtn.BackgroundColor3 = Color3.fromRGB(60, 200, 120)
+    tpBtn.TextColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", tpBtn)
+    
+    setBtn.MouseButton1Click:Connect(function()
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            teleportCFrame = character.HumanoidRootPart.CFrame
+            setBtn.Text = "✅ Point Set!"
+            setBtn.BackgroundColor3 = Color3.fromRGB(60, 200, 120)
+        end
+    end)
+    
+    tpBtn.MouseButton1Click:Connect(function()
+        if teleportCFrame and character and character:FindFirstChild("HumanoidRootPart") then
+            character:PivotTo(teleportCFrame)
+        end
+    end)
+    
+    -- Fly Section with Speed Meter
+    local flyLabel = Instance.new("TextLabel", tpFrame)
+    flyLabel.Size = UDim2.new(1, 0, 0, 25)
+    flyLabel.Position = UDim2.new(0, 10, 0, 150)
+    flyLabel.Text = "Fly Speed:"
+    flyLabel.BackgroundTransparency = 1
+    flyLabel.TextColor3 = Color3.new(1,1,1)
+    flyLabel.TextScaled = true
+    
+    local speedValue = 50
+    local speedLabel = Instance.new("TextLabel", tpFrame)
+    speedLabel.Size = UDim2.new(1, -60, 0, 25)
+    speedLabel.Position = UDim2.new(0, 15, 0, 175)
+    speedLabel.Text = "Speed: " .. speedValue
+    speedLabel.BackgroundTransparency = 1
+    speedLabel.TextColor3 = Color3.new(1,1,1)
+    speedLabel.TextScaled = true
+    
+    local speedUpBtn = Instance.new("TextButton", tpFrame)
+    speedUpBtn.Size = UDim2.new(0, 30, 0, 25)
+    speedUpBtn.Position = UDim2.new(1, -50, 0, 175)
+    speedUpBtn.Text = "+"
+    speedUpBtn.TextScaled = true
+    speedUpBtn.BackgroundColor3 = Color3.fromRGB(60, 200, 120)
+    speedUpBtn.TextColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", speedUpBtn)
+    
+    local speedDownBtn = Instance.new("TextButton", tpFrame)
+    speedDownBtn.Size = UDim2.new(0, 30, 0, 25)
+    speedDownBtn.Position = UDim2.new(1, -85, 0, 175)
+    speedDownBtn.Text = "-"
+    speedDownBtn.TextScaled = true
+    speedDownBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+    speedDownBtn.TextColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", speedDownBtn)
+    
+    local flying = false
+    local flyConnection, BV, BG
+    
+    local flyBtn = Instance.new("TextButton", tpFrame)
+    flyBtn.Size = UDim2.new(1, -20, 0, 35)
+    flyBtn.Position = UDim2.new(0, 10, 0, 210)
+    flyBtn.Text = "🛫 Fly: OFF"
+    flyBtn.TextScaled = true
+    flyBtn.BackgroundColor3 = Color3.fromRGB(200, 150, 60)
+    flyBtn.TextColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", flyBtn)
+    
+    speedUpBtn.MouseButton1Click:Connect(function()
+        speedValue = math.min(speedValue + 10, 200)
+        speedLabel.Text = "Speed: " .. speedValue
+    end)
+    
+    speedDownBtn.MouseButton1Click:Connect(function()
+        speedValue = math.max(speedValue - 10, 10)
+        speedLabel.Text = "Speed: " .. speedValue
+    end)
+    
+    flyBtn.MouseButton1Click:Connect(function()
+        flying = not flying
+        flyBtn.Text = flying and "🛫 Fly: ON" or "🛫 Fly: OFF"
+        flyBtn.BackgroundColor3 = flying and Color3.fromRGB(60, 200, 120) or Color3.fromRGB(200, 150, 60)
+        
+        if flying then
+            local hrp = character:WaitForChild("HumanoidRootPart")
+            BV = Instance.new("BodyVelocity")
+            BV.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+            BV.Velocity = Vector3.new(0, 0, 0)
+            BV.Parent = hrp
+            
+            BG = Instance.new("BodyGyro")
+            BG.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+            BG.CFrame = hrp.CFrame
+            BG.Parent = hrp
+            
+            flyConnection = game:GetService("RunService").RenderStepped:Connect(function()
+                if not flying then return end
+                local moveDir = Vector3.new()
+                local cam = workspace.CurrentCamera
+                local keys = game:GetService("UserInputService")
+                
+                if keys:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + cam.CFrame.LookVector end
+                if keys:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - cam.CFrame.LookVector end
+                if keys:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - cam.CFrame.RightVector end
+                if keys:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + cam.CFrame.RightVector end
+                if keys:IsKeyDown(Enum.KeyCode.Space) then moveDir = moveDir + Vector3.new(0, 1, 0) end
+                if keys:IsKeyDown(Enum.KeyCode.LeftShift) then moveDir = moveDir - Vector3.new(0, 1, 0) end
+                
+                if moveDir.Magnitude > 0 then
+                    BV.Velocity = moveDir.Unit * speedValue
+                else
+                    BV.Velocity = Vector3.new(0, 0, 0)
+                end
+                BG.CFrame = CFrame.new(hrp.Position, hrp.Position + cam.CFrame.LookVector)
+            end)
+        else
+            if flyConnection then flyConnection:Disconnect() end
+            if BV then BV:Destroy() end
+            if BG then BG:Destroy() end
+        end
+    end)
+    
+    local noclipBtn = Instance.new("TextButton", tpFrame)
+    noclipBtn.Size = UDim2.new(1, -20, 0, 35)
+    noclipBtn.Position = UDim2.new(0, 10, 0, 255)
+    noclipBtn.Text = "🚫 NoClip: OFF"
+    noclipBtn.TextScaled = true
+    noclipBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+    noclipBtn.TextColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", noclipBtn)
+    
+    local noclip = false
+    local runService = game:GetService("RunService")
+    noclipBtn.MouseButton1Click:Connect(function()
+        noclip = not noclip
+        noclipBtn.Text = noclip and "🚫 NoClip: ON" or "🚫 NoClip: OFF"
+        noclipBtn.BackgroundColor3 = noclip and Color3.fromRGB(60, 200, 120) or Color3.fromRGB(255, 100, 100)
+    end)
+    
+    runService.Stepped:Connect(function()
+        if noclip and character then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end)
+end
+
+unlockBtn.MouseButton1Click:Connect(function()
+    if keyBox.Text == correctKey then
+        frame:Destroy()
+        createTeleportGui()
+    else
+        keyBox.Text = ""
+        keyBox.PlaceholderText = "❌ Wrong Key"
+    end
+end)
